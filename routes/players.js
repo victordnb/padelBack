@@ -19,4 +19,44 @@ router.get('/', (req, res) => {
     .catch(err => res.status(500).json({ message: 'Error al obtener los jugadores de la base de datos' }));
 });
 
+router.get('/datesWithData', (req, res) => {
+  // Buscar todas las fechas únicas en la colección de jugadores
+  Player.distinct('createdAt')
+    .then(dates => {
+      console.log(dates);
+      res.json(dates);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ message: 'Error al obtener las fechas de la base de datos' });
+    });
+});
+
+router.get('/matches', (req, res) => {
+  const date = req.query.date;
+  if (!date) {
+    return res.status(400).json({ message: 'No date query parameter provided' });
+  }
+
+  // Convertir la fecha a un objeto Date
+  const dateObj = new Date(date);
+
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  
+  const end = new Date(date);
+  end.setHours(23, 59, 59, 999);
+  
+  // Buscar jugadores que coincidan con la fecha
+  Player.find({ createdAt: { $gte: start, $lte: end } })
+    .then(players => {
+      console.log(players);
+      res.json(players);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({ message: 'Error al obtener los jugadores de la base de datos' });
+    });
+});
+
 module.exports = router;
